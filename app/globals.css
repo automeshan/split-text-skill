@@ -61,3 +61,18 @@ body {
 .container {
   max-width: var(--size-container);
 }
+
+/* Typography System - Standardized prose utilities */
+@layer base {
+  .prose-h1 {
+    @apply text-4xl font-extrabold tracking-tight leading-tight mt-0 mb-5 lg:text-5xl;
+  }
+
+  .prose-p {
+    @apply my-5 text-base leading-relaxed lg:text-lg;
+  }
+
+  .prose-p-muted {
+    @apply my-5 text-base leading-relaxed text-gray-500 lg:text-lg;
+  }
+}

@@ -121,8 +121,8 @@ export default function Home() {
     >
       <main className="container mx-auto flex flex-col gap-[8em] items-center sm:items-start py-[5em]">
         <section className="h-[50vh] flex flex-col justify-center">
-          <h1 className="text-[4em] leading-[1.1] font-bold mb-[0.5em]">SplitText Scroll Reveal</h1>
-          <p className="text-[1.25em] text-gray-500">Scroll down to see the magic.</p>
+          <h1 className="prose-h1">SplitText Scroll Reveal</h1>
+          <p className="prose-p-muted">Scroll down to see the magic.</p>
         </section>
 
         {/* Standard Reveals */}
@@ -173,7 +173,7 @@ export default function Home() {
           <h2 className="text-sm font-mono text-purple-500 mb-6 uppercase tracking-wider">
             Rotation Effect
           </h2>
-          <p className="mb-8 text-gray-500">
+          <p className="prose-p-muted">
             Add subtle rotation for a more dynamic entrance. Works best with words or chars.
           </p>
         </section>
@@ -212,7 +212,7 @@ export default function Home() {
           <h2 className="text-sm font-mono text-emerald-500 mb-6 uppercase tracking-wider">
             Opacity Effect
           </h2>
-          <p className="mb-8 text-gray-500">
+          <p className="prose-p-muted">
             Add a fade-in effect for softer, more elegant reveals. Combines well
             with rotation.
           </p>
@@ -253,7 +253,7 @@ export default function Home() {
           <h2 className="text-sm font-mono text-cyan-500 mb-6 uppercase tracking-wider">
             Blur Effect
           </h2>
-          <p className="mb-8 text-gray-500">
+          <p className="prose-p-muted">
             Add a focus-pull effect for cinematic reveals. GPU-intensive, use
             sparingly.
           </p>
@@ -295,7 +295,7 @@ export default function Home() {
           <h2 className="text-sm font-mono text-blue-500 mb-6 uppercase tracking-wider">
             Scrub Interaction
           </h2>
-          <p className="mb-8 text-gray-500">
+          <p className="prose-p-muted">
             These animations are tied directly to the scrollbar. Scroll up and
             down to play the animation.
           </p>

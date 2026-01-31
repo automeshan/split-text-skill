@@ -115,6 +115,44 @@ For fluid responsive typography, add the Osmo scaling system to your project.
 
 > See [Responsive Tailwind v4 Guide](./responsive-tailwind-v4.md) for full CSS setup.
 
+### Typography System
+
+Standardized prose utilities for consistent typography across the project:
+
+```css
+/* globals.css */
+@import "tailwindcss";
+
+/* Typography System - Standardized prose utilities */
+@layer base {
+  .prose-h1 {
+    @apply text-4xl font-extrabold tracking-tight leading-tight mt-0 mb-5 lg:text-5xl;
+  }
+
+  .prose-p {
+    @apply my-5 text-base leading-relaxed lg:text-lg;
+  }
+
+  .prose-p-muted {
+    @apply my-5 text-base leading-relaxed text-gray-500 lg:text-lg;
+  }
+}
+```
+
+**Usage:**
+
+```html
+<h1 class="prose-h1">Main Headline</h1>
+<p class="prose-p">Standard paragraph text.</p>
+<p class="prose-p-muted">Secondary/helper text.</p>
+```
+
+| Class | Purpose |
+|-------|---------|
+| `prose-h1` | Primary headlines - bold, tight tracking, responsive sizing |
+| `prose-p` | Body paragraphs - relaxed leading, consistent spacing |
+| `prose-p-muted` | Secondary text - same as prose-p with gray-500 color |
+
 ### FOUC Prevention
 
 Hide elements initially, reveal with GSAP before animation:
