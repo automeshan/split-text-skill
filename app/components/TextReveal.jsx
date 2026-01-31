@@ -111,9 +111,10 @@ export default function TextReveal({
                 const text = el.textContent;
 
                 // Set up the outer element as clip container
+                // lineHeight = 1 creates tight box that clips the text-shadow below
                 el.style.overflow = "hidden";
                 el.style.display = "inline-block";
-                el.style.lineHeight = hoverDistance;
+                el.style.lineHeight = "1";
                 el.style.verticalAlign = "bottom";
 
                 // Create inner span that will animate
