@@ -67,12 +67,12 @@ export default function Home() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)]"
+      className="min-h-screen p-[2em] pb-[5em] sm:p-[5em] font-[family-name:var(--font-geist-sans)]"
     >
-      <main className="flex flex-col gap-32 items-center sm:items-start max-w-4xl mx-auto py-20">
+      <main className="container mx-auto flex flex-col gap-[8em] items-center sm:items-start py-[5em]">
         <section className="h-[50vh] flex flex-col justify-center">
-          <h1 className="text-5xl font-bold mb-8">SplitText Scroll Reveal</h1>
-          <p className="text-xl text-gray-500">Scroll down to see the magic.</p>
+          <h1 className="text-[4em] leading-[1.1] font-bold mb-[0.5em]">SplitText Scroll Reveal</h1>
+          <p className="text-[1.25em] text-gray-500">Scroll down to see the magic.</p>
         </section>
 
         {/* Standard Reveals */}
@@ -81,7 +81,7 @@ export default function Home() {
             Lines Reveal (Default)
           </h2>
           <div
-            className="text-4xl md:text-6xl font-bold leading-tight overflow-hidden invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
+            className="text-[3.5em] font-bold leading-tight overflow-hidden invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
             data-split="heading"
             data-split-reveal="lines"
           >
@@ -95,7 +95,7 @@ export default function Home() {
             Words Reveal
           </h2>
           <div
-            className="text-4xl md:text-6xl font-bold leading-tight"
+            className="text-[3.5em] font-bold leading-tight"
             data-split="heading"
             data-split-reveal="words"
           >
@@ -109,7 +109,7 @@ export default function Home() {
             Chars Reveal
           </h2>
           <div
-            className="text-4xl md:text-6xl font-bold leading-tight invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
+            className="text-[3.5em] font-bold leading-tight invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
             data-split="heading"
             data-split-reveal="chars"
           >
@@ -134,7 +134,7 @@ export default function Home() {
             Scrub Lines
           </h2>
           <div
-            className="text-4xl md:text-6xl font-bold leading-tight invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
+            className="text-[3.5em] font-bold leading-tight invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
             data-split="heading"
             data-split-reveal="lines"
             data-scrub="true"
@@ -149,7 +149,7 @@ export default function Home() {
             Scrub Words
           </h2>
           <div
-            className="text-4xl md:text-6xl font-bold leading-tight invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
+            className="text-[3.5em] font-bold leading-tight invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
             data-split="heading"
             data-split-reveal="words"
             data-scrub="true"
