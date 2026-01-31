@@ -1,78 +1,248 @@
-# Text Reveal Implementation Guide
+# Text Reveal Animation System
 
-This guide outlines how to implement a scroll-triggered text reveal animation using GSAP's SplitText and ScrollTrigger plugins.
+Scroll-triggered text reveal using GSAP SplitText and ScrollTrigger.
 
-## 1. Responsive Setup (CSS)
+---
 
-Before implementing the logic, set up the **Osmo Scaling System**. This uses CSS variables to create a fluid responsive experience.
+## Quick Reference
 
-Add this to your main CSS file (e.g., `globals.css` or inside a `<style>` block):
+| Attribute | Values | Default |
+|-----------|--------|---------|
+| `data-split` | `"heading"` | Required |
+| `data-split-reveal` | `"lines"` `"words"` `"chars"` | `"lines"` |
+| `data-split-rotate` | number (degrees) | Optional |
+| `data-split-opacity` | `"true"` | Optional |
+| `data-scrub` | (presence) | Optional |
 
-```css
-/* ------------------------- Scaling System by Osmo [https://osmo.supply/] ------------------------- */
+**Required:** GSAP 3.x + SplitText 3.13+ + ScrollTrigger
 
-/* Desktop */
-:root {
-  --size-unit: 16; /* body font-size in design - no px */
-  --size-container-ideal: 1440; /* screen-size in design - no px */
-  --size-container-min: 992px;
-  --size-container-max: 1920px;
-  --size-container: clamp(
-    var(--size-container-min),
-    100vw,
-    var(--size-container-max)
-  );
-  --size-font: calc(
-    var(--size-container) / (var(--size-container-ideal) / var(--size-unit))
-  );
+```html
+<h1 class="invisible" data-split="heading" data-split-reveal="words">
+  Your Headline
+</h1>
+```
+
+---
+
+## When to Use
+
+### Appropriate Use Cases
+
+- Hero headlines and key statements
+- Section titles on scroll entry
+- Brand moments (1-3 elements per viewport max)
+
+### When to Avoid
+
+- Body text or paragraphs
+- Multiple competing animations in same viewport
+- Content-heavy pages where motion distracts from reading
+- Elements below the fold that users scroll past quickly
+
+### Performance Budget
+
+- **Max 5-6** split elements per page
+- **1-2** visible per viewport at any time
+- Prefer `lines` over `chars` for fewer DOM nodes
+
+---
+
+## Prerequisites
+
+### Dependencies
+
+```bash
+# GSAP Club membership required (SplitText is premium)
+bun add gsap @gsap/premium
+```
+
+### Version Requirements
+
+| Package | Minimum Version |
+|---------|-----------------|
+| GSAP | 3.12+ |
+| SplitText | 3.13+ (ARIA support) |
+| ScrollTrigger | 3.12+ |
+
+### Browser Support
+
+Modern browsers (Chrome, Firefox, Safari, Edge). No IE11 support.
+
+---
+
+## Accessibility
+
+### Reduced Motion (Required)
+
+Always check user preference before initializing animations:
+
+```javascript
+function shouldAnimate() {
+  return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/* Tablet */
-@media screen and (max-width: 991px) {
-  :root {
-    --size-container-ideal: 834; /* screen-size in design - no px */
-    --size-container-min: 768px;
-    --size-container-max: 991px;
+function initTextReveal() {
+  const headings = document.querySelectorAll('[data-split="heading"]');
+
+  // Skip animation, show text immediately
+  if (!shouldAnimate()) {
+    headings.forEach((el) => (el.style.visibility = 'visible'));
+    return;
   }
-}
 
-/* Mobile Portrait */
-@media screen and (max-width: 479px) {
-  :root {
-    --size-container-ideal: 390; /* screen-size in design - no px */
-    --size-container-min: 320px;
-    --size-container-max: 479px;
-  }
-}
-
-/* Apply fluid font size to body */
-body {
-  font-size: var(--size-font);
-}
-
-/* Utility for containers */
-.container {
-  max-width: var(--size-container);
+  // Continue with animation setup...
 }
 ```
 
-## 2. HTML Markup
+### Screen Reader Support
 
-Contrary to basic examples, we include two attributes on each heading: one to target the element and one to define the split type.
+SplitText 3.13+ automatically handles ARIA attributes. The split elements remain readable by assistive technology without additional configuration.
 
-For each heading you want to reveal on scroll, add these two attributes:
+### Testing Checklist
 
-- `data-split="heading"`: Marks the element for processing.
-- `data-split-reveal="lines"`: Accepts `"lines"`, `"words"`, or `"chars"` (alias for characters).
+- [ ] Enable "Reduce Motion" in OS accessibility settings
+- [ ] Verify text is visible without animation
+- [ ] Test with VoiceOver/NVDA - text should read naturally
 
-> **Note:** If `data-split-reveal` is omitted, it defaults to `"lines"`.
+---
 
-### Example with Tailwind V4
+## CSS Setup
+
+### Osmo Scaling System
+
+For fluid responsive typography, add the Osmo scaling system to your project.
+
+> See [Responsive Tailwind v4 Guide](./responsive-tailwind-v4.md) for full CSS setup.
+
+### FOUC Prevention
+
+Hide elements initially, reveal with GSAP before animation:
+
+```html
+<!-- Tailwind v4 -->
+<h1 class="invisible" data-split="heading">Hidden until ready</h1>
+```
+
+```javascript
+// Reveal before animating
+gsap.set(heading, { autoAlpha: 1 });
+```
+
+---
+
+## HTML API
+
+### Attributes
+
+| Attribute | Description | Required |
+|-----------|-------------|----------|
+| `data-split="heading"` | Marks element for processing | Yes |
+| `data-split-reveal` | Animation granularity | No (default: `"lines"`) |
+| `data-split-rotate` | Starting rotation in degrees | No |
+| `data-split-opacity` | Adds fade-in effect | No |
+| `data-scrub` | Enables scroll-linked animation | No |
+
+### Reveal Types
+
+| Value | Splits Into | DOM Impact | Best For |
+|-------|-------------|------------|----------|
+| `lines` | Lines only | Minimal | Long headlines |
+| `words` | Lines + Words | Moderate | Short headlines |
+| `chars` | Lines + Words + Chars | Heavy | Brand moments |
+
+### Scrub Mode
+
+Add `data-scrub` to link animation progress directly to scroll position. The animation plays forward on scroll down and reverses on scroll up.
+
+```html
+<h1
+  class="invisible"
+  data-split="heading"
+  data-split-reveal="lines"
+  data-scrub
+>
+  Scroll-linked reveal
+</h1>
+```
+
+**When to use scrub:**
+- Storytelling sections where pacing matters
+- Hero sections with dramatic reveals
+- Interactive explainers
+
+**When to avoid scrub:**
+- Fast-scrolling users will miss the effect
+- Mobile where scroll is less precise
+- Multiple scrub elements competing
+
+### Rotation
+
+Add `data-split-rotate` with a degree value for subtle rotational entrance. Works best with `words` or `chars` reveals.
+
+```html
+<h1
+  class="invisible"
+  data-split="heading"
+  data-split-reveal="words"
+  data-split-rotate="5"
+>
+  Rotated entrance
+</h1>
+```
+
+**Recommended values:**
+- `3-5` degrees — Subtle, professional
+- `8-12` degrees — Noticeable, playful
+- `15+` degrees — Dramatic, use sparingly
+
+**Best practices:**
+- Pair with `words` or `chars` for visible effect
+- Keep subtle (3-8°) for body text adjacent to content
+- Ensure `transform-origin` allows natural pivot (default is element center)
+
+### Opacity
+
+Add `data-split-opacity` to fade in elements as they animate. Creates a softer, more elegant entrance.
+
+```html
+<h1
+  class="invisible"
+  data-split="heading"
+  data-split-reveal="words"
+  data-split-opacity
+>
+  Fades in smoothly
+</h1>
+```
+
+**When to use opacity:**
+- Softer, more elegant reveals
+- Combined with rotation for polished effect
+- When `yPercent` alone feels too mechanical
+
+**When to avoid:**
+- Already complex animations (keep it simple)
+- Performance-critical pages with many elements
+
+**Combining effects:**
+
+```html
+<h1
+  class="invisible"
+  data-split="heading"
+  data-split-reveal="chars"
+  data-split-rotate="5"
+  data-split-opacity
+>
+  Rotate + Fade combo
+</h1>
+```
+
+### Example Markup
 
 ```html
 <section class="w-full flex justify-center">
   <div class="container mx-auto">
-    <!-- Fluid font size applied via body, specific sizing can use em/rem -->
     <h1
       class="text-[5em] leading-[1.1] invisible"
       data-split="heading"
@@ -84,9 +254,11 @@ For each heading you want to reveal on scroll, add these two attributes:
 </section>
 ```
 
-## 3. Configuration Options
+---
 
-Define a global configuration object to store the default duration and stagger for different split types.
+## JavaScript Implementation
+
+### Configuration
 
 ```javascript
 const splitConfig = {
@@ -96,65 +268,62 @@ const splitConfig = {
 };
 ```
 
-## 4. Implementation Logic
-
-The initialization happens in a single function. We split only as much as necessary to keep the DOM clean:
-
-- **lines**: Splits by lines only.
-- **words**: Splits by lines and words.
-- **chars**: Splits by lines, words, and characters.
-
-### Process Summary:
-
-1. Select all elements with `[data-split="heading"]`.
-2. Read the `data-split-reveal` value.
-3. Initialize `SplitText` with the appropriate types.
-4. In the `onSplit` callback, create the `ScrollTrigger` and return the tween for automatic cleanup.
-5. Use `clamp()` for the `ScrollTrigger` start value to ensure animations always start from 0.
-
-### Code Implementation:
+### Core Function
 
 ```javascript
 gsap.registerPlugin(SplitText, ScrollTrigger);
 
-const splitConfig = {
-  lines: { duration: 0.8, stagger: 0.08 },
-  words: { duration: 0.6, stagger: 0.06 },
-  chars: { duration: 0.4, stagger: 0.01 },
-};
+function initTextReveal() {
+  // Accessibility check
+  if (!shouldAnimate()) {
+    document
+      .querySelectorAll('[data-split="heading"]')
+      .forEach((el) => (el.style.visibility = 'visible'));
+    return;
+  }
 
-function initMaskTextScrollReveal() {
   document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
-    // Find the split type, the default is 'lines'
-    const type = heading.dataset.splitReveal || "lines";
-    const typesToSplit =
-      type === "lines"
-        ? ["lines"]
-        : type === "words"
-          ? ["lines", "words"]
-          : ["lines", "words", "chars"];
+    // Reveal element
+    gsap.set(heading, { autoAlpha: 1 });
 
-    // Split the text
+    // Determine split granularity
+    const type = heading.dataset.splitReveal || 'lines';
+    const typesToSplit =
+      type === 'lines'
+        ? ['lines']
+        : type === 'words'
+          ? ['lines', 'words']
+          : ['lines', 'words', 'chars'];
+
+    // Create split and animation
     SplitText.create(heading, {
-      type: typesToSplit.join(", "), // split into required elements
-      mask: "lines", // wrap each line in an overflow:hidden div
+      type: typesToSplit.join(', '),
+      mask: 'lines',
       autoSplit: true,
-      linesClass: "line",
-      wordsClass: "word",
-      charsClass: "letter",
-      onSplit: function (instance) {
-        const targets = instance[type]; // Register animation targets
-        const config = splitConfig[type]; // Find matching duration and stagger
+      linesClass: 'line',
+      wordsClass: 'word',
+      charsClass: 'letter',
+      onSplit(instance) {
+        const targets = instance[type];
+        const config = splitConfig[type];
+
+        const isScrub = heading.dataset.scrub !== undefined;
+        const rotate = parseFloat(heading.dataset.splitRotate) || 0;
+        const useOpacity = heading.dataset.splitOpacity !== undefined;
 
         return gsap.from(targets, {
           yPercent: 110,
+          rotate,
+          opacity: useOpacity ? 0 : 1,
           duration: config.duration,
           stagger: config.stagger,
-          ease: "expo.out",
+          ease: 'expo.out',
           scrollTrigger: {
             trigger: heading,
-            start: "clamp(top 80%)",
-            once: true,
+            start: 'clamp(top 80%)',
+            end: isScrub ? 'bottom 40%' : undefined,
+            scrub: isScrub ? 1 : false,
+            once: !isScrub,
           },
         });
       },
@@ -162,69 +331,193 @@ function initMaskTextScrollReveal() {
   });
 }
 
-// Initialize on DOMContentLoaded
-document.addEventListener("DOMContentLoaded", () => {
-  initMaskTextScrollReveal();
-});
+// Initialize after fonts load
+document.fonts.ready.then(initTextReveal);
 ```
 
-## 5. Performance & Accessibility
+---
 
-### Accessibility
+## SPA Integration (React/Next.js)
 
-As of **SplitText version 13.0**, there is built-in support for screen readers. ARIA attributes are handled automatically by default, ensuring the text remains readable.
+### React Hook Pattern
 
-### Flash of Unstyled Content (FOUC)
+```javascript
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import { SplitText } from 'gsap/SplitText';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-Headings in the initial viewport might flash briefly before the JavaScript runs. To prevent this, hide the elements using the `invisible` utility class and reveal them using GSAP right before the animation.
+gsap.registerPlugin(SplitText, ScrollTrigger);
 
-**HTML:**
+export function useTextReveal() {
+  const splitsRef = useRef([]);
 
-Add the `invisible` class to your elements:
+  useEffect(() => {
+    // Skip if reduced motion preferred
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document
+        .querySelectorAll('[data-split="heading"]')
+        .forEach((el) => (el.style.visibility = 'visible'));
+      return;
+    }
+
+    // Wait for fonts then initialize
+    document.fonts.ready.then(() => {
+      document.querySelectorAll('[data-split="heading"]').forEach((heading) => {
+        gsap.set(heading, { autoAlpha: 1 });
+
+        const type = heading.dataset.splitReveal || 'lines';
+        const typesToSplit =
+          type === 'lines'
+            ? ['lines']
+            : type === 'words'
+              ? ['lines', 'words']
+              : ['lines', 'words', 'chars'];
+
+        const split = SplitText.create(heading, {
+          type: typesToSplit.join(', '),
+          mask: 'lines',
+          autoSplit: true,
+          onSplit(instance) {
+            const config = {
+              lines: { duration: 0.8, stagger: 0.08 },
+              words: { duration: 0.6, stagger: 0.06 },
+              chars: { duration: 0.4, stagger: 0.01 },
+            }[type];
+
+            return gsap.from(instance[type], {
+              yPercent: 110,
+              duration: config.duration,
+              stagger: config.stagger,
+              ease: 'expo.out',
+              scrollTrigger: {
+                trigger: heading,
+                start: 'clamp(top 80%)',
+                once: true,
+              },
+            });
+          },
+        });
+
+        splitsRef.current.push(split);
+      });
+    });
+
+    // Cleanup on unmount
+    return () => {
+      splitsRef.current.forEach((split) => split.revert());
+      splitsRef.current = [];
+      ScrollTrigger.getAll().forEach((st) => st.kill());
+    };
+  }, []);
+}
+```
+
+### Usage in Component
+
+```javascript
+export default function HeroSection() {
+  useTextReveal();
+
+  return (
+    <section>
+      <h1 className="invisible" data-split="heading" data-split-reveal="words">
+        Welcome to Our Site
+      </h1>
+    </section>
+  );
+}
+```
+
+---
+
+## Customization
+
+### Per-Element Overrides
+
+Extend the data attribute API for granular control:
 
 ```html
-<h1 class="invisible" data-split="heading" data-split-reveal="lines">
-  Your Headline
+<h1
+  data-split="heading"
+  data-split-reveal="chars"
+  data-split-duration="1.2"
+  data-split-stagger="0.02"
+>
+  Custom Timing
 </h1>
 ```
 
-**JavaScript Update:**
-
 ```javascript
-document.addEventListener("DOMContentLoaded", () => {
-  let headings = document.querySelectorAll('[data-split="heading"]');
-  headings.forEach((heading) => {
-    // Reset visibility before animation
-    gsap.set(heading, { autoAlpha: 1 });
-    // ... animation logic
-  });
-});
+const duration = parseFloat(heading.dataset.splitDuration) || config.duration;
+const stagger = parseFloat(heading.dataset.splitStagger) || config.stagger;
 ```
 
-## 6. Bonus Optimization Tips
+### Alternative Easing
+
+```javascript
+// Common alternatives
+ease: 'power4.out'    // Snappy
+ease: 'expo.out'      // Smooth deceleration (default)
+ease: 'back.out(1.7)' // Slight overshoot
+ease: 'elastic.out'   // Bouncy (use sparingly)
+```
+
+### Stagger Direction
+
+```javascript
+// Default: top to bottom
+stagger: 0.08
+
+// Bottom to top
+stagger: { each: 0.08, from: 'end' }
+
+// Center outward
+stagger: { each: 0.08, from: 'center' }
+
+// Random
+stagger: { each: 0.08, from: 'random' }
+```
+
+---
+
+## Performance Tips
+
+### GPU Acceleration
+
+Add to animated elements for smoother rendering:
+
+```html
+<h1 class="transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]">
+  Optimized Text
+</h1>
+```
 
 ### Font Loading
 
-Wait for fonts to be ready to ensure `SplitText` calculates positions correctly:
+Always wait for fonts before splitting to ensure accurate line breaks:
 
 ```javascript
-document.fonts.ready.then(function () {
-  initMaskTextScrollReveal();
-});
+document.fonts.ready.then(initTextReveal);
 ```
 
-### Rendering Performance
+---
 
-Use these Tailwind v4 utility classes (including arbitrary values) for smoother font rendering and performance:
+## Troubleshooting
 
-- `transform-gpu`: Forces GPU acceleration (adds `transform: translate3d(...)`).
-- `[text-rendering:optimizeSpeed]`: Optimizes text rendering.
-- `[font-kerning:none]`: Disables font kerning for more predictable spacing during animation.
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Text jumps/reflows after split | Fonts not loaded | Wait for `document.fonts.ready` |
+| Animation doesn't trigger | ScrollTrigger start position | Adjust `start: "clamp(top 90%)"` |
+| Memory leak in SPA | Missing cleanup | Call `split.revert()` on unmount |
+| Text invisible on load | FOUC CSS without JS reveal | Ensure `gsap.set(el, { autoAlpha: 1 })` runs |
+| Accessibility warning | Old SplitText version | Update to 3.13+ for ARIA support |
+| Lines break differently than design | Viewport/font mismatch | Use `autoSplit: true` for responsive recalc |
 
-**Example Class Usage:**
+---
 
-```html
-<div class="transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]">
-  <!-- content -->
-</div>
-```
+## Version History
+
+| Date | Change |
+|------|--------|
+| 2025-01 | Added accessibility, SPA patterns, troubleshooting |
