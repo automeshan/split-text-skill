@@ -105,8 +105,11 @@ export default function TextReveal({
             onSplit(instance) {
               const targets = instance[reveal];
 
-              // Set CSS custom property for dynamic hover distance (used by CSS for transform)
+              // Set CSS custom properties for dynamic hover effect (used by CSS for transform)
               container.style.setProperty("--hover-distance", `${hoverDistance}em`);
+              container.style.setProperty("--hover-duration", `${hoverDuration}s`);
+              container.style.setProperty("--hover-ease", hoverEase);
+              container.style.setProperty("--hover-stagger", `${hoverStagger}s`);
 
               // Wrap each target in a clipping container and add inner span for animation
               targets.forEach((el, i) => {
@@ -119,12 +122,13 @@ export default function TextReveal({
                 el.style.verticalAlign = "bottom";
 
                 // Inner span: carries text-shadow and animates on hover
+                // Uses CSS var for text-shadow so it stays in sync with transform
                 const inner = document.createElement("span");
                 inner.textContent = text;
                 inner.style.display = "inline-block";
-                inner.style.textShadow = `0 ${hoverDistance}em currentColor`;
-                inner.style.transition = `transform ${hoverDuration}s ${hoverEase}`;
-                inner.style.transitionDelay = `${i * hoverStagger}s`;
+                inner.style.textShadow = `0 var(--hover-distance) currentColor`;
+                inner.style.transition = `transform var(--hover-duration) var(--hover-ease)`;
+                inner.style.transitionDelay = `calc(${i} * var(--hover-stagger, ${hoverStagger}s))`;
 
                 el.textContent = "";
                 el.appendChild(inner);
@@ -147,9 +151,13 @@ export default function TextReveal({
           onSplit(instance) {
             const targets = instance[reveal];
 
+            // Set CSS variable for mask overflow (accounts for descenders + rotation)
+            const maskOverflow = 110 + Math.abs(rotate) * 0.5;
+            textElement.style.setProperty("--mask-overflow", `${maskOverflow}%`);
+
             // Base animation props
             const baseProps = {
-              yPercent: 110,
+              yPercent: maskOverflow,
               rotate,
               filter: blur ? `blur(${blur}px)` : "none",
               duration: animDuration,
