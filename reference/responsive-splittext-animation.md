@@ -11,7 +11,8 @@ Scroll-triggered text reveal using GSAP SplitText and ScrollTrigger.
 | `data-split` | `"heading"` | Required |
 | `data-split-reveal` | `"lines"` `"words"` `"chars"` | `"lines"` |
 | `data-split-rotate` | number (degrees) | Optional |
-| `data-split-opacity` | `"true"` | Optional |
+| `data-split-opacity` | (presence) | Optional |
+| `data-split-blur` | number (pixels) | Optional |
 | `data-scrub` | (presence) | Optional |
 
 **Required:** GSAP 3.x + SplitText 3.13+ + ScrollTrigger
@@ -140,6 +141,7 @@ gsap.set(heading, { autoAlpha: 1 });
 | `data-split-reveal` | Animation granularity | No (default: `"lines"`) |
 | `data-split-rotate` | Starting rotation in degrees | No |
 | `data-split-opacity` | Adds fade-in effect | No |
+| `data-split-blur` | Starting blur in pixels | No |
 | `data-scrub` | Enables scroll-linked animation | No |
 
 ### Reveal Types
@@ -224,6 +226,36 @@ Add `data-split-opacity` to fade in elements as they animate. Creates a softer, 
 - Already complex animations (keep it simple)
 - Performance-critical pages with many elements
 
+### Blur
+
+Add `data-split-blur` with a pixel value to animate from blurred to sharp. Creates a dreamy, focus-pull effect.
+
+```html
+<h1
+  class="invisible"
+  data-split="heading"
+  data-split-reveal="words"
+  data-split-blur="10"
+>
+  Blurs into focus
+</h1>
+```
+
+**Recommended values:**
+- `4-8` pixels — Subtle, professional
+- `10-15` pixels — Noticeable, cinematic
+- `20+` pixels — Dramatic, use sparingly
+
+**When to use blur:**
+- Cinematic, premium feel
+- Focus-pull storytelling moments
+- Combined with opacity for ethereal effect
+
+**When to avoid:**
+- Performance-sensitive contexts (blur is GPU-intensive)
+- Many elements animating simultaneously
+- Mobile devices with limited GPU
+
 **Combining effects:**
 
 ```html
@@ -233,8 +265,9 @@ Add `data-split-opacity` to fade in elements as they animate. Creates a softer, 
   data-split-reveal="chars"
   data-split-rotate="5"
   data-split-opacity
+  data-split-blur="8"
 >
-  Rotate + Fade combo
+  The ultimate combo
 </h1>
 ```
 
@@ -310,11 +343,13 @@ function initTextReveal() {
         const isScrub = heading.dataset.scrub !== undefined;
         const rotate = parseFloat(heading.dataset.splitRotate) || 0;
         const useOpacity = heading.dataset.splitOpacity !== undefined;
+        const blur = parseFloat(heading.dataset.splitBlur) || 0;
 
         return gsap.from(targets, {
           yPercent: 110,
           rotate,
           opacity: useOpacity ? 0 : 1,
+          filter: blur ? `blur(${blur}px)` : 'none',
           duration: config.duration,
           stagger: config.stagger,
           ease: 'expo.out',

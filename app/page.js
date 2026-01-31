@@ -55,6 +55,7 @@ export default function Home() {
           const isScrub = heading.dataset.scrub !== undefined;
           const rotate = parseFloat(heading.dataset.splitRotate) || 0;
           const useOpacity = heading.dataset.splitOpacity !== undefined;
+          const blur = parseFloat(heading.dataset.splitBlur) || 0;
 
           // Use SplitText.create() with autoSplit for responsive recalculation
           SplitText.create(heading, {
@@ -68,10 +69,11 @@ export default function Home() {
               const targets = instance[type];
               const config = splitConfig[type];
 
-              // Base animation: position + rotation
+              // Base animation: position + rotation + blur
               const baseProps = {
                 yPercent: 110,
                 rotate,
+                filter: blur ? `blur(${blur}px)` : "none",
                 duration: config.duration,
                 stagger: config.stagger,
                 ease: "expo.out",
@@ -242,6 +244,48 @@ export default function Home() {
             data-split-opacity="true"
           >
             The full experience.
+          </div>
+        </section>
+
+        {/* Blur Reveals */}
+        <section className="w-full">
+          <div className="h-px w-full bg-gray-200 my-10"></div>
+          <h2 className="text-sm font-mono text-cyan-500 mb-6 uppercase tracking-wider">
+            Blur Effect
+          </h2>
+          <p className="mb-8 text-gray-500">
+            Add a focus-pull effect for cinematic reveals. GPU-intensive, use
+            sparingly.
+          </p>
+        </section>
+
+        <section className="w-full">
+          <h2 className="text-sm font-mono text-gray-400 mb-6 uppercase tracking-wider">
+            Words + Blur (8px)
+          </h2>
+          <div
+            className="text-[3.5em] font-bold leading-tight invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
+            data-split="heading"
+            data-split-reveal="words"
+            data-split-blur="8"
+          >
+            Words emerge from a dreamy haze into sharp focus.
+          </div>
+        </section>
+
+        <section className="w-full">
+          <h2 className="text-sm font-mono text-gray-400 mb-6 uppercase tracking-wider">
+            Chars + Opacity + Blur (Ultimate Combo)
+          </h2>
+          <div
+            className="text-[3.5em] font-bold leading-tight invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
+            data-split="heading"
+            data-split-reveal="chars"
+            data-split-rotate="3"
+            data-split-opacity="true"
+            data-split-blur="6"
+          >
+            Pure cinema.
           </div>
         </section>
 
