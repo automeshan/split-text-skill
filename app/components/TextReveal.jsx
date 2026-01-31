@@ -5,6 +5,11 @@ import gsap from "gsap";
 import { SplitText } from "gsap/SplitText";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+// Register plugins once at module level (not on every render)
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(SplitText, ScrollTrigger);
+}
+
 // Default timing per split type
 const splitConfig = {
   lines: { duration: 0.8, stagger: 0.08 },
@@ -59,8 +64,6 @@ export default function TextReveal({
   const containerRef = useRef(null);
 
   useLayoutEffect(() => {
-    gsap.registerPlugin(SplitText, ScrollTrigger);
-
     const container = containerRef.current;
     if (!container) return;
 
@@ -112,23 +115,21 @@ export default function TextReveal({
               container.style.setProperty("--hover-stagger", `${hoverStagger}s`);
 
               // Wrap each target in a clipping container and add inner span for animation
-              targets.forEach((el, i) => {
+              // Batch style reads first, then writes (avoid layout thrashing)
+              const elements = targets.map((el, i) => {
                 const text = el.textContent;
+                return { el, text, index: i };
+              });
 
+              // Batch all DOM writes
+              elements.forEach(({ el, text, index }) => {
                 // Outer element: tight clip container (lineHeight: 1 hides shadow)
-                el.style.overflow = "hidden";
-                el.style.display = "inline-block";
-                el.style.lineHeight = "1";
-                el.style.verticalAlign = "bottom";
+                el.style.cssText = "overflow:hidden;display:inline-block;line-height:1;vertical-align:bottom";
 
                 // Inner span: carries text-shadow and animates on hover
-                // Uses CSS var for text-shadow so it stays in sync with transform
                 const inner = document.createElement("span");
                 inner.textContent = text;
-                inner.style.display = "inline-block";
-                inner.style.textShadow = `0 var(--hover-distance) currentColor`;
-                inner.style.transition = `transform var(--hover-duration) var(--hover-ease)`;
-                inner.style.transitionDelay = `calc(${i} * var(--hover-stagger, ${hoverStagger}s))`;
+                inner.style.cssText = `display:inline-block;text-shadow:0 var(--hover-distance) currentColor;transition:transform var(--hover-duration) var(--hover-ease);transition-delay:calc(${index} * var(--hover-stagger, ${hoverStagger}s))`;
 
                 el.textContent = "";
                 el.appendChild(inner);
