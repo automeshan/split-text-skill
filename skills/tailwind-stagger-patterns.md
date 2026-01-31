@@ -2,9 +2,62 @@
 
 CSS stagger techniques using Tailwind v4 utility classes defined in `globals.css`. Keeps markup clean, styles centralized.
 
-## Stagger Utility Classes
+## TextReveal Hover CSS (Production Implementation)
 
-Add these to your `globals.css` alongside existing prose utilities:
+The actual hover stagger from `globals.css` uses data-attributes and CSS variables:
+
+```css
+/* TextReveal hover stagger animation - uses text-shadow technique */
+@layer base {
+  [data-hover-reveal] .word > span,
+  [data-hover-reveal] .letter > span {
+    transform: translateY(0) rotate(0.001deg);
+  }
+
+  [data-hover-reveal]:hover .word > span,
+  [data-hover-reveal]:hover .letter > span {
+    /* --hover-distance is set dynamically via JS on the container */
+    transform: translateY(calc(var(--hover-distance, 1.3em) * -1)) rotate(0.001deg);
+  }
+}
+```
+
+### How TextReveal Sets Up Hover
+
+The component sets CSS variables on the container and builds the DOM structure:
+
+```js
+// CSS custom properties (set via JS on container)
+container.style.setProperty("--hover-distance", `${hoverDistance}em`);
+container.style.setProperty("--hover-duration", `${hoverDuration}s`);
+container.style.setProperty("--hover-ease", hoverEase);
+container.style.setProperty("--hover-stagger", `${hoverStagger}s`);
+
+// Each word/char gets wrapped with outer clip + inner animate
+// Outer: overflow:hidden; display:inline-block; line-height:1;
+// Inner: text-shadow:0 var(--hover-distance) currentColor;
+//        transition:transform var(--hover-duration) var(--hover-ease);
+//        transition-delay: calc(index * var(--hover-stagger));
+
+container.dataset.hoverReveal = reveal;  // Enables CSS selectors
+```
+
+### Usage
+
+```jsx
+<TextReveal reveal="chars" hover>
+  <div className="prose-display cursor-pointer">Hover over me.</div>
+</TextReveal>
+
+// Custom timing
+<TextReveal reveal="chars" hover hoverStagger={0.02} hoverDuration={0.4}>
+  <div className="prose-display cursor-pointer">Faster stagger.</div>
+</TextReveal>
+```
+
+## Standalone Stagger Utility Classes
+
+For components that don't use TextReveal (like StaggerButton):
 
 ```css
 /* Stagger animation utilities */
@@ -195,17 +248,30 @@ Then reference in utilities:
 
 ## Performance Classes
 
-Already included in utilities, but remember:
+From actual `globals.css`:
 
+```css
+/* Display text optimization for animation */
+.prose-display {
+  @apply text-[3.5em] font-bold leading-tight invisible transform-gpu;
+  text-rendering: optimizeSpeed;
+  font-kerning: none;
+}
+```
+
+**Why these optimizations:**
+- `invisible` → TextReveal sets `visibility: visible` after setup (prevents flash)
+- `transform-gpu` → GPU acceleration for animations
+- `text-rendering: optimizeSpeed` + `font-kerning: none` → Better animation performance for large text
+
+For all animated elements:
 ```css
 .stagger-char {
   @apply transform-gpu;  /* GPU acceleration */
 }
-
-.prose-display {
-  @apply [text-rendering:optimizeSpeed] [font-kerning:none];  /* For animated text */
-}
 ```
+
+The `rotate(0.001deg)` in transforms also forces GPU compositing without visible rotation.
 
 ## When CSS Isn't Enough
 

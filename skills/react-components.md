@@ -10,6 +10,49 @@ Production-ready components for common stagger patterns. Uses utility classes fr
 
 ## Required CSS in globals.css
 
+### TextReveal Hover Stagger (from actual implementation)
+
+```css
+/* TextReveal hover stagger animation - uses text-shadow technique */
+@layer base {
+  [data-hover-reveal] .word > span,
+  [data-hover-reveal] .letter > span {
+    transform: translateY(0) rotate(0.001deg);
+  }
+
+  [data-hover-reveal]:hover .word > span,
+  [data-hover-reveal]:hover .letter > span {
+    /* --hover-distance is set dynamically via JS on the container */
+    transform: translateY(calc(var(--hover-distance, 1.3em) * -1)) rotate(0.001deg);
+  }
+}
+```
+
+**Key implementation details:**
+- `data-hover-reveal` attribute set by TextReveal when `hover={true}`
+- CSS variables (`--hover-distance`, `--hover-duration`, `--hover-ease`, `--hover-stagger`) set inline via JS
+- `rotate(0.001deg)` forces GPU acceleration without visible rotation
+- Inner `<span>` carries `text-shadow` and animates on hover
+
+### Display Text Optimization
+
+```css
+@layer base {
+  .prose-display {
+    @apply text-[3.5em] font-bold leading-tight invisible transform-gpu;
+    text-rendering: optimizeSpeed;
+    font-kerning: none;
+  }
+}
+```
+
+**Why these optimizations:**
+- `invisible` → TextReveal sets `visibility: visible` after setup
+- `transform-gpu` → GPU acceleration for animations
+- `text-rendering: optimizeSpeed` + `font-kerning: none` → Better animation performance for large text
+
+### Standalone Stagger Components (StaggerButton, etc.)
+
 ```css
 /* Stagger utilities - add to @layer base */
 @layer base {
@@ -286,28 +329,87 @@ export function StaggerText({ children, className = "" }) {
 </StaggerText>
 ```
 
-## Integration with TextReveal
+## TextReveal Component - Full API
 
-The existing `TextReveal` component in this project already supports hover stagger via the `hover` prop:
+The `TextReveal` component in this project provides production-ready scroll reveals with optional hover effects.
+
+### Props Reference
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | ReactNode | required | Text element to animate |
+| `reveal` | `"lines"` \| `"words"` \| `"chars"` | `"lines"` | Split granularity |
+| `rotate` | number | `0` | Rotation in degrees |
+| `opacity` | boolean | `false` | Enable fade-in effect |
+| `blur` | number | `0` | Blur amount in px |
+| `duration` | number | auto | Override animation duration |
+| `stagger` | number | auto | Override stagger timing |
+| `scrub` | boolean | `false` | Tie animation to scrollbar |
+| `start` | string | `"clamp(top 80%)"` | ScrollTrigger start |
+| `end` | string | `"bottom 40%"` | ScrollTrigger end (for scrub) |
+| `hover` | boolean | `false` | Enable hover stagger (skips scroll) |
+| `hoverStagger` | number | `0.01` | Delay between elements (s) |
+| `hoverDuration` | number | `0.6` | Transition duration (s) |
+| `hoverDistance` | number | `1.3` | Y-translate distance (em) |
+| `hoverEase` | string | `"cubic-bezier(0.625, 0.05, 0, 1)"` | CSS timing function |
+
+### Default Timing (from `splitConfig`)
+
+```js
+const splitConfig = {
+  lines: { duration: 0.8, stagger: 0.08 },
+  words: { duration: 0.6, stagger: 0.06 },
+  chars: { duration: 0.4, stagger: 0.01 },
+};
+```
+
+### Usage Examples (from `page.js`)
 
 ```jsx
 import TextReveal from "@/app/components/TextReveal";
 
-// CSS-based hover stagger (text-shadow technique)
-<TextReveal reveal="chars" hover hoverStagger={0.01} hoverDuration={0.5}>
-  Hover to see stagger
+// Basic reveals by type
+<TextReveal reveal="lines">...</TextReveal>  // Default
+<TextReveal reveal="words">...</TextReveal>
+<TextReveal reveal="chars">...</TextReveal>
+
+// With rotation
+<TextReveal reveal="words" rotate={5}>...</TextReveal>
+
+// With opacity fade
+<TextReveal reveal="words" opacity>...</TextReveal>
+
+// Full combo (cinematic)
+<TextReveal reveal="chars" rotate={3} opacity blur={6}>
+  <div className="prose-display">Pure cinema.</div>
 </TextReveal>
 
-// Scroll-triggered reveal + hover
-<TextReveal reveal="words" opacity hover>
-  Scroll reveal with hover effect
+// Hover-only (no scroll animation)
+<TextReveal reveal="chars" hover>
+  <div className="prose-display cursor-pointer">Hover over me.</div>
+</TextReveal>
+
+// Custom hover timing
+<TextReveal reveal="chars" hover hoverStagger={0.02} hoverDuration={0.4}>
+  <div className="prose-display cursor-pointer">Faster stagger.</div>
+</TextReveal>
+
+// Scrub interaction (scroll controls animation)
+<TextReveal reveal="words" scrub>
+  <div className="prose-display">Control with your scroll.</div>
 </TextReveal>
 ```
 
-**When to use TextReveal vs custom:**
-- **TextReveal:** Scroll-triggered reveals, SplitText integration, combined effects
-- **StaggerButton:** Button-specific styling, background inset effect
-- **StaggerText:** Simple hover-only, no scroll trigger needed
+### When to Use TextReveal vs Custom Components
+
+| Use Case | Component | Why |
+|----------|-----------|-----|
+| Scroll-triggered text reveals | **TextReveal** | SplitText + ScrollTrigger integration |
+| Combined effects (rotate/blur/opacity) | **TextReveal** | Props handle complexity |
+| Hover-only text stagger | **TextReveal** with `hover` | CSS-based, performant |
+| Button with background inset | **StaggerButton** | Button-specific styling |
+| List item reveals | **StaggerList** | ScrollTrigger.batch for efficiency |
+| Grid card radiating reveal | **StaggerGrid** | `from: "center"` stagger pattern |
 
 ## Accessibility
 

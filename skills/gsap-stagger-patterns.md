@@ -96,7 +96,7 @@ gsap.to(".item", {
 ### Efficient DOM: Mask at Line Level
 
 ```js
-// Good: Fewer DOM nodes
+// Good: Fewer DOM nodes (TextReveal uses this)
 const split = new SplitText(el, {
   type: "chars,lines",
   mask: "lines"        // Mask overflow at line level
@@ -109,36 +109,97 @@ const split = new SplitText(el, {
 });
 ```
 
-### Character Reveal
+### Production Pattern (from TextReveal)
 
 ```js
-useGSAP(() => {
-  const split = new SplitText(textRef.current, {
-    type: "chars,lines",
-    mask: "lines"
-  });
+// Wait for fonts before splitting (ensures accurate line breaks)
+document.fonts.ready.then(() => {
+  // Reveal element before animation
+  gsap.set(textElement, { visibility: "visible" });
 
-  gsap.from(split.chars, {
-    y: "100%",
-    stagger: 0.02,
-    duration: 0.6,
-    ease: "power2.out",
-    scrollTrigger: {
-      trigger: textRef.current,
-      start: "top 80%",
-      once: true
+  // Determine split types based on reveal prop
+  const typesToSplit =
+    reveal === "lines" ? ["lines"]
+    : reveal === "words" ? ["lines", "words"]
+    : ["lines", "words", "chars"];
+
+  SplitText.create(textElement, {
+    type: typesToSplit.join(", "),
+    mask: "lines",  // Always mask at line level for efficiency
+    autoSplit: true,
+    linesClass: "line",
+    wordsClass: "word",
+    charsClass: "letter",
+    onSplit(instance) {
+      const targets = instance[reveal];
+
+      // Calculate mask overflow (accounts for descenders + rotation)
+      const maskOverflow = 110 + Math.abs(rotate) * 0.5;
+
+      gsap.from(targets, {
+        yPercent: maskOverflow,
+        rotate,
+        filter: blur ? `blur(${blur}px)` : "none",
+        duration: animDuration,
+        stagger: animStagger,
+        ease: "expo.out",
+        scrollTrigger: {
+          trigger: textElement,
+          start: "clamp(top 80%)",
+          once: true
+        }
+      });
     }
   });
+});
+```
 
-  return () => split.revert();
-}, { scope: containerRef });
+### Separate Opacity Tween Technique
+
+TextReveal uses a separate tween for opacity to create a distinct fade effect:
+
+```js
+// Main animation: position, rotation, blur
+gsap.from(targets, {
+  yPercent: maskOverflow,
+  rotate,
+  filter: blur ? `blur(${blur}px)` : "none",
+  duration: animDuration,
+  stagger: animStagger,
+  ease: "expo.out",
+  scrollTrigger: { ... }
+});
+
+// Separate opacity tween with delay (1.5x duration, delayed start)
+if (opacity) {
+  gsap.from(targets, {
+    opacity: 0,
+    duration: animDuration * 1.5,  // Longer fade
+    stagger: animStagger,
+    ease: "power2.out",
+    delay: animStagger * 0.5,      // Starts slightly after position
+    scrollTrigger: { ... }
+  });
+}
+```
+
+**Why separate tweens?** The delayed opacity creates a layered effect where elements start moving before fully fading in.
+
+### Default Timing Configuration
+
+```js
+const splitConfig = {
+  lines: { duration: 0.8, stagger: 0.08 },
+  words: { duration: 0.6, stagger: 0.06 },
+  chars: { duration: 0.4, stagger: 0.01 },
+};
 ```
 
 ### Word Reveal with Rotation
 
 ```js
 gsap.from(split.words, {
-  y: "100%",
+  yPercent: 110,  // Use yPercent for mask-based reveals
   rotation: 5,
   stagger: 0.06,
   duration: 0.8,
@@ -150,11 +211,11 @@ gsap.from(split.words, {
 
 ```js
 gsap.from(split.lines, {
-  y: 40,
+  yPercent: 110,
   opacity: 0,
-  stagger: 0.1,
+  stagger: 0.08,
   duration: 0.8,
-  ease: "power2.out"
+  ease: "expo.out"
 });
 ```
 
@@ -267,6 +328,31 @@ gsap.from(".word", {
 - `scrub: 1` - 1 second smoothing
 - `scrub: 0.5` - 0.5 second smoothing
 
+### TextReveal Scrub Pattern
+
+```js
+// From TextReveal component
+scrollTrigger: {
+  trigger: textElement,
+  start: "clamp(top 80%)",
+  end: scrub ? "bottom 40%" : undefined,  // Only set end for scrub
+  scrub: scrub ? 1 : false,
+  once: !scrub  // Non-scrub animations play once
+}
+```
+
+Usage:
+```jsx
+// User controls animation with scroll
+<TextReveal scrub>
+  <div className="prose-display">Control the animation with your scroll.</div>
+</TextReveal>
+
+<TextReveal reveal="words" scrub>
+  <div className="prose-display">Complete control over every word.</div>
+</TextReveal>
+```
+
 ## Reverse Stagger
 
 Animate out in reverse order:
@@ -299,18 +385,16 @@ Copy-paste starting points:
 
 ```js
 const configs = {
+  // From TextReveal splitConfig - battle-tested defaults
+  lines: { duration: 0.8, stagger: 0.08, ease: "expo.out" },
+  words: { duration: 0.6, stagger: 0.06, ease: "expo.out" },
+  chars: { duration: 0.4, stagger: 0.01, ease: "expo.out" },
+
   // Button hover - fast, subtle
   hover: {
     stagger: 0.01,
     duration: 0.5,
     ease: "power2.out"
-  },
-
-  // Text reveal - smooth entrance
-  textReveal: {
-    stagger: 0.03,
-    duration: 0.8,
-    ease: "expo.out"
   },
 
   // List items - clear sequence
