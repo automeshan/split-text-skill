@@ -32,6 +32,11 @@ function shouldAnimate() {
  * @param {string} start - ScrollTrigger start position (default: "clamp(top 80%)")
  * @param {string} end - ScrollTrigger end position for scrub (default: "bottom 40%")
  * @param {string} className - Additional classes for wrapper div
+ * @param {boolean} hover - Enable hover stagger effect (default: false)
+ * @param {number} hoverStagger - Delay between each element in seconds (default: 0.01)
+ * @param {number} hoverDuration - Hover transition duration in seconds (default: 0.6)
+ * @param {number} hoverDistance - Y-translate distance in em (default: 1.3)
+ * @param {string} hoverEase - CSS timing function (default: "cubic-bezier(0.625, 0.05, 0, 1)")
  */
 export default function TextReveal({
   children,
@@ -45,6 +50,11 @@ export default function TextReveal({
   start = "clamp(top 80%)",
   end = "bottom 40%",
   className = "",
+  hover = false,
+  hoverStagger = 0.01,
+  hoverDuration = 0.6,
+  hoverDistance = 1.3,
+  hoverEase = "cubic-bezier(0.625, 0.05, 0, 1)",
 }) {
   const containerRef = useRef(null);
 
@@ -84,7 +94,48 @@ export default function TextReveal({
         const animDuration = duration ?? config.duration;
         const animStagger = stagger ?? config.stagger;
 
-        // Use SplitText.create() with autoSplit for responsive recalculation
+        // HOVER-ONLY MODE: Skip scroll animation, just set up hover effect
+        if (hover) {
+          SplitText.create(textElement, {
+            type: typesToSplit.join(", "),
+            autoSplit: true,
+            linesClass: "line",
+            wordsClass: "word",
+            charsClass: "letter",
+            onSplit(instance) {
+              const targets = instance[reveal];
+
+              // Wrap each target in a clipping container and add inner span for animation
+              targets.forEach((el, i) => {
+                // Get the text content
+                const text = el.textContent;
+
+                // Set up the outer element as clip container
+                el.style.overflow = "hidden";
+                el.style.display = "inline-block";
+                el.style.lineHeight = hoverDistance;
+                el.style.verticalAlign = "bottom";
+
+                // Create inner span that will animate
+                const inner = document.createElement("span");
+                inner.textContent = text;
+                inner.style.display = "inline-block";
+                inner.style.textShadow = `0 ${hoverDistance}em currentColor`;
+                inner.style.transition = `transform ${hoverDuration}s ${hoverEase}`;
+                inner.style.transitionDelay = `${i * hoverStagger}s`;
+
+                // Replace content
+                el.textContent = "";
+                el.appendChild(inner);
+              });
+
+              container.dataset.hoverReveal = reveal;
+            },
+          });
+          return; // Skip scroll animation setup
+        }
+
+        // SCROLL ANIMATION MODE (default)
         SplitText.create(textElement, {
           type: typesToSplit.join(", "),
           mask: "lines",
@@ -137,7 +188,7 @@ export default function TextReveal({
     });
 
     return () => ctx?.revert();
-  }, [reveal, rotate, opacity, blur, duration, stagger, scrub, start, end]);
+  }, [reveal, rotate, opacity, blur, duration, stagger, scrub, start, end, hover, hoverStagger, hoverDuration, hoverDistance, hoverEase]);
 
   return (
     <div ref={containerRef} className={className}>

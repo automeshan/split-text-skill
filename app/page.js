@@ -117,6 +117,39 @@ export default function Home() {
           </TextReveal>
         </section>
 
+        {/* Hover Stagger */}
+        <section className="section-content">
+          <div className="divider"></div>
+          <h2 className="prose-h2-accent text-amber-500">Hover Stagger</h2>
+          <p className="prose-p-muted">
+            Independent hover effect using CSS text-shadow. Works alongside
+            scroll animations.
+          </p>
+        </section>
+
+        <section className="section-content">
+          <h2 className="prose-h2">Chars + Hover (Default)</h2>
+          <TextReveal reveal="chars" hover>
+            <div className="prose-display cursor-pointer">Hover over me.</div>
+          </TextReveal>
+        </section>
+
+        <section className="section-content">
+          <h2 className="prose-h2">Words + Hover</h2>
+          <TextReveal reveal="words" hover>
+            <div className="prose-display cursor-pointer">
+              Hover to see words stagger up one by one.
+            </div>
+          </TextReveal>
+        </section>
+
+        <section className="section-content">
+          <h2 className="prose-h2">Chars + Hover + Custom Timing</h2>
+          <TextReveal reveal="chars" hover hoverStagger={0.02} hoverDuration={0.4}>
+            <div className="prose-display cursor-pointer">Faster stagger.</div>
+          </TextReveal>
+        </section>
+
         {/* Scrub Reveals */}
         <section className="section-content">
           <div className="divider"></div>

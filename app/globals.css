@@ -115,3 +115,16 @@ body {
     @apply h-px w-full bg-gray-200 my-10;
   }
 }
+
+/* TextReveal hover stagger animation - uses text-shadow technique */
+@layer base {
+  [data-hover-reveal] .word > span,
+  [data-hover-reveal] .letter > span {
+    transform: translateY(0) rotate(0.001deg);
+  }
+
+  [data-hover-reveal]:hover .word > span,
+  [data-hover-reveal]:hover .letter > span {
+    transform: translateY(-1.3em) rotate(0.001deg);
+  }
+}
