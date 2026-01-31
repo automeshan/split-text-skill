@@ -51,12 +51,15 @@ export default function TextReveal({
   useLayoutEffect(() => {
     gsap.registerPlugin(SplitText, ScrollTrigger);
 
-    const element = containerRef.current;
-    if (!element) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Target the first child element (the actual text element) or container itself
+    const textElement = container.children[0] || container;
 
     // Accessibility: skip animation, show text immediately
     if (!shouldAnimate()) {
-      gsap.set(element, { autoAlpha: 1 });
+      gsap.set(textElement, { visibility: "visible" });
       return;
     }
 
@@ -66,7 +69,7 @@ export default function TextReveal({
     document.fonts.ready.then(() => {
       ctx = gsap.context(() => {
         // Reveal element before animation
-        gsap.set(element, { autoAlpha: 1 });
+        gsap.set(textElement, { visibility: "visible" });
 
         // Determine split types based on reveal prop
         const typesToSplit =
@@ -82,7 +85,7 @@ export default function TextReveal({
         const animStagger = stagger ?? config.stagger;
 
         // Use SplitText.create() with autoSplit for responsive recalculation
-        SplitText.create(element, {
+        SplitText.create(textElement, {
           type: typesToSplit.join(", "),
           mask: "lines",
           autoSplit: true,
@@ -101,7 +104,7 @@ export default function TextReveal({
               stagger: animStagger,
               ease: "expo.out",
               scrollTrigger: {
-                trigger: element,
+                trigger: textElement,
                 start,
                 end: scrub ? end : undefined,
                 scrub: scrub ? 1 : false,
@@ -118,7 +121,7 @@ export default function TextReveal({
                 ease: "power2.out",
                 delay: animStagger * 0.5,
                 scrollTrigger: {
-                  trigger: element,
+                  trigger: textElement,
                   start,
                   end: scrub ? end : undefined,
                   scrub: scrub ? 1 : false,
@@ -130,17 +133,14 @@ export default function TextReveal({
             return gsap.from(targets, baseProps);
           },
         });
-      }, containerRef);
+      }, container);
     });
 
     return () => ctx?.revert();
   }, [reveal, rotate, opacity, blur, duration, stagger, scrub, start, end]);
 
   return (
-    <div
-      ref={containerRef}
-      className={`invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none] ${className}`}
-    >
+    <div ref={containerRef} className={className}>
       {children}
     </div>
   );
