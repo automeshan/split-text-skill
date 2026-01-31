@@ -24,16 +24,3 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-
-/* SplitText Reveal Styles */
-[data-split="heading"] {
-  visibility: hidden;
-}
-
-.text {
-  -webkit-text-rendering: optimizeSpeed;
-  text-rendering: optimizeSpeed;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  font-kerning: none;
-}

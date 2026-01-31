@@ -81,7 +81,7 @@ export default function Home() {
             Lines Reveal (Default)
           </h2>
           <div
-            className="text-4xl md:text-6xl font-bold leading-tight overflow-hidden"
+            className="text-4xl md:text-6xl font-bold leading-tight overflow-hidden invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
             data-split="heading"
             data-split-reveal="lines"
           >
@@ -109,7 +109,7 @@ export default function Home() {
             Chars Reveal
           </h2>
           <div
-            className="text-4xl md:text-6xl font-bold leading-tight"
+            className="text-4xl md:text-6xl font-bold leading-tight invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
             data-split="heading"
             data-split-reveal="chars"
           >
@@ -134,7 +134,7 @@ export default function Home() {
             Scrub Lines
           </h2>
           <div
-            className="text-4xl md:text-6xl font-bold leading-tight"
+            className="text-4xl md:text-6xl font-bold leading-tight invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
             data-split="heading"
             data-split-reveal="lines"
             data-scrub="true"
@@ -149,7 +149,7 @@ export default function Home() {
             Scrub Words
           </h2>
           <div
-            className="text-4xl md:text-6xl font-bold leading-tight"
+            className="text-4xl md:text-6xl font-bold leading-tight invisible transform-gpu [text-rendering:optimizeSpeed] [font-kerning:none]"
             data-split="heading"
             data-split-reveal="words"
             data-scrub="true"
