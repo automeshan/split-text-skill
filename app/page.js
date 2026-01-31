@@ -43,6 +43,8 @@ export default function Home() {
         const targets = split[type];
         const config = splitConfig[type];
 
+        const isScrub = heading.dataset.scrub !== undefined;
+
         gsap.from(targets, {
           yPercent: 110,
           duration: config.duration,
@@ -51,7 +53,9 @@ export default function Home() {
           scrollTrigger: {
             trigger: heading,
             start: "clamp(top 80%)",
-            once: true,
+            end: isScrub ? "bottom 40%" : undefined,
+            scrub: isScrub ? 1 : false,
+            once: !isScrub,
           },
         });
       });
@@ -71,6 +75,7 @@ export default function Home() {
           <p className="text-xl text-gray-500">Scroll down to see the magic.</p>
         </section>
 
+        {/* Standard Reveals */}
         <section className="w-full">
           <h2 className="text-sm font-mono text-gray-400 mb-6 uppercase tracking-wider">
             Lines Reveal (Default)
@@ -109,6 +114,48 @@ export default function Home() {
             data-split-reveal="chars"
           >
             Character by character precision.
+          </div>
+        </section>
+
+        {/* Scrub Reveals */}
+        <section className="w-full">
+          <div className="h-px w-full bg-gray-200 my-10"></div>
+          <h2 className="text-sm font-mono text-blue-500 mb-6 uppercase tracking-wider">
+            Scrub Interaction
+          </h2>
+          <p className="mb-8 text-gray-500">
+            These animations are tied directly to the scrollbar. Scroll up and
+            down to play the animation.
+          </p>
+        </section>
+
+        <section className="w-full">
+          <h2 className="text-sm font-mono text-gray-400 mb-6 uppercase tracking-wider">
+            Scrub Lines
+          </h2>
+          <div
+            className="text-4xl md:text-6xl font-bold leading-tight"
+            data-split="heading"
+            data-split-reveal="lines"
+            data-scrub="true"
+          >
+            Control the animation with your scroll. As you move down, the lines
+            reveal themselves. Move up, and they hide again.
+          </div>
+        </section>
+
+        <section className="w-full">
+          <h2 className="text-sm font-mono text-gray-400 mb-6 uppercase tracking-wider">
+            Scrub Words
+          </h2>
+          <div
+            className="text-4xl md:text-6xl font-bold leading-tight"
+            data-split="heading"
+            data-split-reveal="words"
+            data-scrub="true"
+          >
+            Complete control over every word. Perfect for storytelling sections or
+            highlighting key messages.
           </div>
         </section>
 
