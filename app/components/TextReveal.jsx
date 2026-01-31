@@ -105,19 +105,20 @@ export default function TextReveal({
             onSplit(instance) {
               const targets = instance[reveal];
 
+              // Set CSS custom property for dynamic hover distance (used by CSS for transform)
+              container.style.setProperty("--hover-distance", `${hoverDistance}em`);
+
               // Wrap each target in a clipping container and add inner span for animation
               targets.forEach((el, i) => {
-                // Get the text content
                 const text = el.textContent;
 
-                // Set up the outer element as clip container
-                // lineHeight = 1 creates tight box that clips the text-shadow below
+                // Outer element: tight clip container (lineHeight: 1 hides shadow)
                 el.style.overflow = "hidden";
                 el.style.display = "inline-block";
                 el.style.lineHeight = "1";
                 el.style.verticalAlign = "bottom";
 
-                // Create inner span that will animate
+                // Inner span: carries text-shadow and animates on hover
                 const inner = document.createElement("span");
                 inner.textContent = text;
                 inner.style.display = "inline-block";
@@ -125,7 +126,6 @@ export default function TextReveal({
                 inner.style.transition = `transform ${hoverDuration}s ${hoverEase}`;
                 inner.style.transitionDelay = `${i * hoverStagger}s`;
 
-                // Replace content
                 el.textContent = "";
                 el.appendChild(inner);
               });
